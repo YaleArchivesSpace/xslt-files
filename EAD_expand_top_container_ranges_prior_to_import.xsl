@@ -15,7 +15,7 @@
        if the text = 1-5, then 5 container elements are produced (1 to 5)
        if the text = 1-10b, then only 1 container element is produced (with the same input value)
        if the text = 5-1, then only 1 container element is produced (with the same input value...  but an example is provided for how to produce 5 elements, if desired)-->
-    <xsl:template match="ead:container[lower-case(@type)='box'][matches(replace(., '\s', ''), '^[1-9](\d?)[-](\d+)$')]">
+    <xsl:template match="ead:container[lower-case(@type)='box'][matches(replace(., '\s', ''), '^[1-9](\d*)[-](\d+)$')]">
         <xsl:variable name="allAttributes" select="@*"/>
         <xsl:variable name="containerStart" select="xs:integer(substring-before(., '-'))"/>
         <xsl:variable name="containerEnd" select="xs:integer(substring-after(., '-'))"/>
@@ -43,14 +43,14 @@
       -->
     <!--
         if you don't use @type, but you do use @id and @parent, try this xpath filter instead:
-    <xsl:template match="ead:container[not(@parent)][matches(replace(., '\s', ''), '^[1-9](\d?)[-](\d+)$')]">
+    <xsl:template match="ead:container[not(@parent)][matches(replace(., '\s', ''), '^[1-9](\d*)[-](\d+)$')]">
         
     </xsl:template>
       -->
     <!--
         if you only want to match true "top containers" (i.e. those that appear first within a component), and you don't have any 
         container groups (or "multiple istances", in AT speak), then you can use the following xpath filter instead:
-    <xsl:template match="ead:container[1][matches(replace(., '\s', ''), '^[1-9](\d?)[-](\d+)$')]">
+    <xsl:template match="ead:container[1][matches(replace(., '\s', ''), '^[1-9](\d*)[-](\d+)$')]">
         
     </xsl:template>
   -->
