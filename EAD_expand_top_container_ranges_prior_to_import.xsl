@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ead="urn:isbn:1-931666-22-9" version="2.0">
-    
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:ead="urn:isbn:1-931666-22-9" version="2.0">
+
     <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
 
     <!--standard identity template, which does all of the copying-->
@@ -10,15 +12,16 @@
         </xsl:copy>
     </xsl:template>
 
-     <!-- this next template will match "container ranges" and then proceed to split them up into individual container elements 
+    <!-- this next template will match "container ranges" and then proceed to split them up into individual container elements 
      the whole process isn't documented here, but here are a few illustrative examples:
        if the text = 1-5, then 5 container elements are produced (1 to 5)
        if the text = 1-10b, then only 1 container element is produced (with the same input value)
        if the text = 5-1, then only 1 container element is produced (with the same input value...  but an example is provided for how to produce 5 elements, if desired)-->
     <xsl:template match="ead:container[lower-case(@type)='box'][matches(replace(., '\s', ''), '^[1-9](\d*)[-](\d+)$')]">
-        <xsl:variable name="allAttributes" select="@*"/>
-        <xsl:variable name="containerStart" select="xs:integer(substring-before(., '-'))"/>
-        <xsl:variable name="containerEnd" select="xs:integer(substring-after(., '-'))"/>
+        <xsl:variable name="mostAttributes" select="@* except @id"/>
+        <xsl:variable name="IDAttribute" select="@id"/>
+        <xsl:variable name="containerStart" select="xs:integer(substring-before(., '-'))" as="xs:integer"/>
+        <xsl:variable name="containerEnd" select="xs:integer(substring-after(., '-'))" as="xs:integer"/>
         <!-- if you've got a box range like 24-20, for whatever reason (let's hope it's a typo), then this if statement will make sure that it's included in the output
                 (the for-each statement that's below will not count backwards, so if you ask it go from 24 to 20, it will return an empty sequence).
                 alternatively, you could still tokenize these containers, if you still choose, like so:  reverse($containerEnd to $containerStart) -->
@@ -26,11 +29,25 @@
             <xsl:copy-of select="."/>
         </xsl:if>
         <xsl:for-each select="$containerStart to $containerEnd">
+            <xsl:variable name="currentContainer" as="xs:integer">
+                <xsl:value-of select="."/>
+            </xsl:variable>
             <xsl:element name="container" namespace="urn:isbn:1-931666-22-9">
-                <xsl:apply-templates select="$allAttributes"/>
+                <xsl:apply-templates select="$IDAttribute" mode="id-attribute-copy-for-multiple">
+                    <xsl:with-param name="currentContainer" select="if ($currentContainer eq $containerStart) then '' else concat('--', $currentContainer)"/>
+                </xsl:apply-templates>
+                <xsl:apply-templates select="$mostAttributes"/>
                 <xsl:value-of select="."/>
             </xsl:element>
         </xsl:for-each>
+    </xsl:template>
+
+    <!-- appends extra info to the @id attributes of split container rangers, so as to keep the EAD export valid, since an @id value can only appear once per file-->
+    <xsl:template match="@id" mode="id-attribute-copy-for-multiple">
+        <xsl:param name="currentContainer"/>
+        <xsl:attribute name="id">
+            <xsl:value-of select="concat(., $currentContainer)"/>
+        </xsl:attribute>
     </xsl:template>
 
     <!--
