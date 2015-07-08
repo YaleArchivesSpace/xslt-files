@@ -87,5 +87,56 @@
     <xsl:template match="ead:archdesc/ead:did/ead:unittitle/text()">
         <xsl:value-of select="concat('IMPORT ',.)"/>
     </xsl:template>
+        
+    <!-- Replace parens with brackets in container/@label (for AT EAD) -->
+    <xsl:template name="string-replace-all">
+        <xsl:param name="text" />
+        <xsl:param name="replace" />
+        <xsl:param name="by" />
+        <xsl:choose>
+            <xsl:when test="contains($text, $replace)">
+                <xsl:value-of select="substring-before($text,$replace)" />
+                <xsl:value-of select="$by" />
+                <xsl:call-template name="string-replace-all">
+                    <xsl:with-param name="text"
+                        select="substring-after($text,$replace)" />
+                    <xsl:with-param name="replace" select="$replace" />
+                    <xsl:with-param name="by" select="$by" />
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$text" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    <xsl:template match="ead:container/@label">
+        <xsl:attribute name="label">
+            <xsl:call-template name="string-replace-all">
+                <xsl:with-param name="text" select="."/>
+                <xsl:with-param name="replace" select="'('"/>             
+                <xsl:with-param name="by" select="'['"/>
+            </xsl:call-template>
+        </xsl:attribute>
+    </xsl:template>
+    <xsl:template match="ead:container/@label">
+        <xsl:attribute name="label">
+            <xsl:call-template name="string-replace-all">
+                <xsl:with-param name="text" select="."/>
+                <xsl:with-param name="replace" select="')'"/>             
+                <xsl:with-param name="by" select="']'"/>
+            </xsl:call-template>
+        </xsl:attribute>
+    </xsl:template>
+    
+        
+    <!-- Replace parens with brackets in container/@label (for AT EAD) -->
+    <xsl:template match="ead:container/@label">
+        <xsl:attribute name="label">
+            <xsl:value-of select="translate(.,'(','[')"></xsl:value-of>
+            <xsl:value-of select="translate(.,')',']')"></xsl:value-of>
+        </xsl:attribute>
+    </xsl:template>
+    <xsl:template match="@*"/>
+    
     
 </xsl:stylesheet>
