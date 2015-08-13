@@ -79,15 +79,18 @@
     
     <!-- Update EADID, titleproper and collection title to prepend the string "IMPORT" -->
     <xsl:template match="ead:titleproper/text()">
-        <xsl:value-of select="concat('IMPORT ',.)"/>
+        <xsl:value-of select="concat(.,' IMPORT ', string(current-dateTime()))"/>
     </xsl:template>
     <xsl:template match="ead:eadid/text()">
-        <xsl:value-of select="concat('IMPORT.',.)"/>
+        <xsl:value-of select="concat(.,' IMPORT ', string(current-dateTime()))"/>
     </xsl:template>
     <xsl:template match="ead:archdesc/ead:did/ead:unittitle/text()">
-        <xsl:value-of select="concat('IMPORT ',.)"/>
+        <xsl:value-of select="concat(.,' IMPORT ', string(current-dateTime()))"/>
     </xsl:template>
-        
+    <xsl:template match="ead:archdesc//ead:unitid/text()">
+        <xsl:value-of select="concat(.,' IMPORT ', string(current-dateTime()))"/>
+    </xsl:template>
+    
     <!-- Replace parens with brackets in container/@label (for AT EAD) -->
     <xsl:template match="ead:container/@label">
         <xsl:attribute name="label">
