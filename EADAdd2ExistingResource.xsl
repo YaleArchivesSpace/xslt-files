@@ -77,18 +77,18 @@
     <!-- Remove id attributes from components (avoid duplication error) -->
     <xsl:template match="ead:c/@id|ead:c01/@id|ead:c02/@id|ead:c03/@id|ead:c04/@id|ead:c05/@id|ead:c06/@id|ead:c07/@id|ead:c08/@id|ead:c09/@id|ead:c10/@id|ead:c11/@id|ead:c12/@id"/>
     
-    <!-- Update EADID, titleproper and collection title to prepend the string "IMPORT" -->
+    <!-- Update EADID, unitid, titleproper and collection title to prepend the string "IMPORT" -->
     <xsl:template match="ead:titleproper/text()">
         <xsl:value-of select="concat(.,' IMPORT ', string(current-dateTime()))"/>
     </xsl:template>
     <xsl:template match="ead:eadid/text()">
-        <xsl:value-of select="concat(.,' IMPORT ', string(current-dateTime()))"/>
+        <xsl:value-of select="concat(.,'.IMPORT.', string(current-dateTime()))"/>
     </xsl:template>
     <xsl:template match="ead:archdesc/ead:did/ead:unittitle/text()">
         <xsl:value-of select="concat(.,' IMPORT ', string(current-dateTime()))"/>
     </xsl:template>
     <xsl:template match="ead:archdesc//ead:unitid/text()">
-        <xsl:value-of select="concat(.,' IMPORT ', string(current-dateTime()))"/>
+        <xsl:value-of select="concat(.,'IMPORT', string(current-dateTime()))"/>
     </xsl:template>
     
     <!-- Replace parens with brackets in container/@label (for AT EAD) -->
