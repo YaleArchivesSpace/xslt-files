@@ -4,6 +4,9 @@
     xmlns:ead="urn:isbn:1-931666-22-9"
     version="1.0">
     
+    <!-- FYI: if your EAD files are not in the EAD namespace, then you will need to change the last two template @match 
+    attributes from ead:container to container -->
+    
     <!--standard identity template, which does all of the copying-->
     <xsl:template match="@*|node()">
         <xsl:copy>
