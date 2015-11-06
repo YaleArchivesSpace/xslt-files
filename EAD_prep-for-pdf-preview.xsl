@@ -110,7 +110,7 @@
                     <xsl:variable name="second-date" select="replace(substring-after(@normal, '/'), '\D', '')"/>
                     <!-- just adding the next line until i write a date conversion function-->
                     <xsl:value-of select="mdc:iso-date-2-display-form($first-date)"/>
-                    <xsl:if test="$second-date ne '' and $first-date ne $second-date">
+                    <xsl:if test="$second-date ne '' and ($first-date ne $second-date)">
                         <xsl:text>&#8211;</xsl:text>
                         <xsl:value-of select="mdc:iso-date-2-display-form($second-date)"/>
                     </xsl:if>
@@ -150,7 +150,7 @@
                     <xsl:variable name="first-date" select="if (contains(@normal, '/')) then replace(substring-before(@normal, '/'), '\D', '') else @normal"/>
                     <xsl:variable name="second-date" select="replace(substring-after(@normal, '/'), '\D', '')"/>
                     <xsl:value-of select="mdc:iso-date-2-display-form($first-date)"/>
-                    <xsl:if test="$second-date ne '' and $first-date ne $second-date">
+                    <xsl:if test="$second-date ne '' and ($first-date ne $second-date)">
                         <xsl:text>&#8211;</xsl:text>
                         <xsl:value-of select="mdc:iso-date-2-display-form($second-date)"/>
                     </xsl:if>
