@@ -51,7 +51,7 @@
     </xsl:template>
     
     <xsl:template match="ead:c[not(@id)] |
-    matches(local-name(), '^c0|c1')][not(@id)]">
+    ead:*[matches(local-name(), '^c0|c1')][not(@id)]">
         <xsl:copy>
             <xsl:attribute name="id" select="generate-id()"/>
             <xsl:apply-templates select="@*"/>
