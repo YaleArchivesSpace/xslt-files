@@ -2,7 +2,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:mdc="http://www.local-functions/mdc"
     xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ead="urn:isbn:1-931666-22-9"
-    exclude-result-prefixes="xs mdc xlink" version="2.0">
+    exclude-result-prefixes="xs mdc xlink ead" version="2.0">
 
     <xsl:include href="http://www.library.yale.edu/facc/xsl/include/yale.ead2002.id_head_values.xsl"/>
 
@@ -47,9 +47,8 @@
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="ead:eadheader[ead:eadid/normalize-space()]">
+    <xsl:template match="ead:eadheader[not(ead:eadid/text())]">
         <ead:eadheader audience="internal" countryencoding="iso3166-1" dateencoding="iso8601" findaidstatus="edited-full-draft" langencoding="iso639-2b" repositoryencoding="iso15511" scriptencoding="iso15924">
-            <ead:eadid countrycode="US" mainagencycode="US-CtY-BA" publicid="-//Yale University::Yale Center for British Art//TEXT (US::CtY-BA::::[Clayton family papers])//EN" url="http://hdl.handle.net/10079/fa/ycba.mss.0002">ycba.mss.0002</ead:eadid>
             <ead:filedesc>
                 <ead:titlestmt>
                     <ead:titleproper type="formal">Guide to the ...</ead:titleproper>
@@ -80,7 +79,7 @@
     <xsl:template
         match="ead:archdesc/ead:did[starts-with(ead:unitid, 'temp')][ead:physdesc/ead:extent eq '99 Linear feet']">
         <xsl:copy>
-            <head>Overview</head>
+            <ead:head>Overview</ead:head>
             <xsl:copy-of select="ead:unitid"/>
             <ead:unittitle label="Title:">TTK</ead:unittitle>
             <ead:unitdate calendar="gregorian" datechar="creation" era="ce" label="Dates:" type="inclusive">...</ead:unitdate>
