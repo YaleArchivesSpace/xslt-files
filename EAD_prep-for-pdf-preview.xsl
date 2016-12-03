@@ -1,32 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:mdc="http://www.local-functions/mdc"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-    xmlns:ead="urn:isbn:1-931666-22-9"
-    exclude-result-prefixes="xs"
-    version="2.0">
-    
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:mdc="http://www.local-functions/mdc"
+    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ead="urn:isbn:1-931666-22-9"
+    exclude-result-prefixes="xs mdc xlink" version="2.0">
+
     <xsl:include href="http://www.library.yale.edu/facc/xsl/include/yale.ead2002.id_head_values.xsl"/>
-    
+
     <xsl:output method="xml" encoding="UTF-8"/>
-    
+
     <xsl:function name="mdc:iso-date-2-display-form" as="xs:string*">
         <xsl:param name="date" as="xs:string"/>
         <xsl:variable name="months"
             select="
-            ('January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December')"/>
+                ('January',
+                'February',
+                'March',
+                'April',
+                'May',
+                'June',
+                'July',
+                'August',
+                'September',
+                'October',
+                'November',
+                'December')"/>
         <xsl:analyze-string select="$date" flags="x" regex="(\d{{4}})(\d{{2}})?(\d{{2}})?">
             <xsl:matching-substring>
                 <!-- year -->
@@ -43,22 +40,95 @@
             </xsl:matching-substring>
         </xsl:analyze-string>
     </xsl:function>
-    
-    <xsl:template match="@*|node()">
+
+    <xsl:template match="@* | node()">
         <xsl:copy>
-            <xsl:apply-templates select="@*|node()"/>
+            <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="ead:c[not(@id)] |
-    ead:*[matches(local-name(), '^c0|c1')][not(@id)]">
+    <xsl:template match="ead:eadheader[ead:eadid/normalize-space()]">
+        <ead:eadheader audience="internal" countryencoding="iso3166-1" dateencoding="iso8601" findaidstatus="edited-full-draft" langencoding="iso639-2b" repositoryencoding="iso15511" scriptencoding="iso15924">
+            <ead:eadid countrycode="US" mainagencycode="US-CtY-BA" publicid="-//Yale University::Yale Center for British Art//TEXT (US::CtY-BA::::[Clayton family papers])//EN" url="http://hdl.handle.net/10079/fa/ycba.mss.0002">ycba.mss.0002</ead:eadid>
+            <ead:filedesc>
+                <ead:titlestmt>
+                    <ead:titleproper type="formal">Guide to the ...</ead:titleproper>
+                    <ead:titleproper audience="internal" type="filing">...</ead:titleproper>
+                    <ead:author>by... you!</ead:author>
+                </ead:titlestmt>
+                <ead:publicationstmt>
+                    <ead:publisher>Yale University Special Collections</ead:publisher>
+                    <ead:address>
+                        <ead:addressline>New Haven, Connecticut</ead:addressline>
+                    </ead:address>
+                </ead:publicationstmt>
+                <ead:notestmt>
+                    <ead:note type="bpg">
+                        <ead:p>This encoded finding aid is compliant with the Yale EAD Best Practice Guidelines,
+                            Version 1.0.</ead:p>
+                    </ead:note>
+                </ead:notestmt>
+            </ead:filedesc>
+            <ead:profiledesc>
+                <ead:langusage>Finding aid written in 
+                    <ead:language langcode="eng" scriptcode="Latn">English</ead:language>.</ead:langusage>
+                <ead:descrules>Describing Archives: A Content Standard</ead:descrules>
+            </ead:profiledesc>
+        </ead:eadheader>
+    </xsl:template>
+
+    <xsl:template
+        match="ead:archdesc/ead:did[starts-with(ead:unitid, 'temp')][ead:physdesc/ead:extent eq '99 Linear feet']">
+        <xsl:copy>
+            <head>Overview</head>
+            <xsl:copy-of select="ead:unitid"/>
+            <ead:unittitle label="Title:">TTK</ead:unittitle>
+            <ead:unitdate calendar="gregorian" datechar="creation" era="ce" label="Dates:" type="inclusive">...</ead:unitdate>
+            <ead:physdesc label="Physical Description:">
+                <ead:extent>...</ead:extent>
+            </ead:physdesc>
+            <ead:repository label="Repository:">
+                <ead:corpname>Yale University Special Collections</ead:corpname>
+            </ead:repository>
+        </xsl:copy>
+        <ead:descgrp id="ai" type="admininfo">
+            <ead:head>Administrative Information</ead:head>
+            <ead:descgrp id="prov" type="provenance">
+                <ead:head>Provenance</ead:head>
+                <ead:acqinfo id="acq">
+                    <ead:p>....</ead:p>
+                </ead:acqinfo>
+            </ead:descgrp>
+            <ead:accessrestrict id="acc">
+                <ead:head>Information about Access</ead:head>
+                <ead:p>...</ead:p>
+            </ead:accessrestrict>
+            <ead:userestrict id="use">
+                <ead:head>Ownership &amp; Copyright</ead:head>
+                <ead:p>...</ead:p>
+            </ead:userestrict>
+            <ead:prefercite id="pre">
+                <ead:head>Cite As</ead:head>
+                <ead:p>...</ead:p>
+            </ead:prefercite>
+            <ead:processinfo id="pro">
+                <ead:head>Processing Notes</ead:head>
+                <ead:p>...</ead:p>
+            </ead:processinfo>
+        </ead:descgrp>
+    </xsl:template>
+
+    <xsl:template
+        match="
+            ead:c[not(@id)] |
+            ead:*[matches(local-name(), '^c0|c1')][not(@id)]">
         <xsl:copy>
             <xsl:attribute name="id" select="generate-id()"/>
             <xsl:apply-templates select="@*"/>
             <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
-    
+
     <!-- MDC:  new additions for new data-entry rules in ArchivesSpace !!! -->
     <xsl:template match="ead:*[@level = 'series']/ead:did/ead:unitid[matches(., '^\d+$')]">
         <xsl:variable name="roman-numeral">
@@ -72,7 +142,7 @@
             <xsl:value-of select="concat('Series ', $roman-numeral)"/>
         </xsl:copy>
     </xsl:template>
-    
+
     <xsl:template match="ead:unitdate[@type ne 'bulk'] | ead:unitdate[not(@type)]">
         <xsl:copy>
             <xsl:copy-of select="@* except @label"/>
@@ -107,8 +177,14 @@
                     <xsl:apply-templates/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:variable name="first-date" select="if (contains(@normal, '/')) then replace(substring-before(@normal, '/'), '\D', '') else replace(@normal, '\D', '')"/>
-                    <xsl:variable name="second-date" select="replace(substring-after(@normal, '/'), '\D', '')"/>
+                    <xsl:variable name="first-date"
+                        select="
+                            if (contains(@normal, '/')) then
+                                replace(substring-before(@normal, '/'), '\D', '')
+                            else
+                                replace(@normal, '\D', '')"/>
+                    <xsl:variable name="second-date"
+                        select="replace(substring-after(@normal, '/'), '\D', '')"/>
                     <!-- just adding the next line until i write a date conversion function-->
                     <xsl:value-of select="mdc:iso-date-2-display-form($first-date)"/>
                     <xsl:if test="$second-date ne '' and ($first-date ne $second-date)">
@@ -119,7 +195,7 @@
             </xsl:choose>
         </xsl:copy>
     </xsl:template>
-    
+
     <xsl:template match="ead:unitdate[@type = 'bulk']">
         <xsl:copy>
             <xsl:copy-of select="@* except @label"/>
@@ -148,8 +224,14 @@
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:text>Bulk, </xsl:text>
-                    <xsl:variable name="first-date" select="if (contains(@normal, '/')) then replace(substring-before(@normal, '/'), '\D', '') else replace(@normal, '\D', '')"/>
-                    <xsl:variable name="second-date" select="replace(substring-after(@normal, '/'), '\D', '')"/>
+                    <xsl:variable name="first-date"
+                        select="
+                            if (contains(@normal, '/')) then
+                                replace(substring-before(@normal, '/'), '\D', '')
+                            else
+                                replace(@normal, '\D', '')"/>
+                    <xsl:variable name="second-date"
+                        select="replace(substring-after(@normal, '/'), '\D', '')"/>
                     <xsl:value-of select="mdc:iso-date-2-display-form($first-date)"/>
                     <xsl:if test="$second-date ne '' and ($first-date ne $second-date)">
                         <xsl:text>&#8211;</xsl:text>
@@ -159,16 +241,18 @@
             </xsl:choose>
         </xsl:copy>
     </xsl:template>
-   
-    
+
+
     <!--optimized for what ASpace can output (up to 2 extents only).  If these templates are not used with AS-produced EAD, they
     will definitely need to change!-->
     <xsl:template match="ead:extent[1][matches(., '^\d')]">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <!--ASpace doesn't force the extent number to be a number, so we'll need to validate and test this on our own-->
-            <xsl:variable name="extent-number" select="number(substring-before(normalize-space(.), ' '))"/>
-            <xsl:variable name="extent-type" select="lower-case(substring-after(normalize-space(.), ' '))"/>
+            <xsl:variable name="extent-number"
+                select="number(substring-before(normalize-space(.), ' '))"/>
+            <xsl:variable name="extent-type"
+                select="lower-case(substring-after(normalize-space(.), ' '))"/>
             <xsl:value-of select="format-number($extent-number, '#,###')"/>
             <xsl:text> </xsl:text>
             <xsl:choose>
@@ -194,14 +278,14 @@
                     <xsl:value-of select="replace($extent-type, 's \(', ' (')"/>
                 </xsl:when>
                 <!--any other irregular singluar/plural extent type names???-->
-                
+
                 <!--otherwise, just print out the childless text node as is-->
                 <xsl:otherwise>
                     <xsl:value-of select="$extent-type"/>
                 </xsl:otherwise>
-                
+
             </xsl:choose>
-            
+
             <!--provide a separator before the next extent value, if present-->
             <xsl:choose>
                 <!-- if there's a second extent, and that value starts with an open parentheis character, then add a space-->
@@ -215,7 +299,7 @@
             </xsl:choose>
         </xsl:copy>
     </xsl:template>
-    
+
     <!-- this stuff won't work for all of the hand-encoded YCBA files, so those should probably be updated in ASpace.
     Or, just remove these templates for YCBA by adding a repository-based filter-->
     <xsl:template match="ead:physfacet">
@@ -246,5 +330,5 @@
             </xsl:choose>
         </xsl:copy>
     </xsl:template>
-    
+
 </xsl:stylesheet>
