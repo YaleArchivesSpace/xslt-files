@@ -2,12 +2,13 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:math="http://www.w3.org/2005/xpath-functions/math"
+    xmlns:map="http://www.w3.org/2005/xpath-functions/map"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:ead3="http://ead3.archivists.org/schema/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     exclude-result-prefixes="xs math"
     version="3.0">
-
+    
     <!-- to do:    
         review XLink reqs.... see if others, like xlink:from and xlink:to, are needed
         everything else (of course)..... but  this is all we need for our ASpace-produced corpus, so stopping here for now.
@@ -18,7 +19,20 @@
     <!-- local adjustments to compensate for ASpace repo records that weren't fully filled out...  but could be used as defaults in other scenarios-->
     <xsl:param name="default-country-code" select="'US'"/>
     <!-- set up a map for this since it seems that not all repos were updated in ASpace as assumed -->
-    <xsl:param name="default-agency-code" select="if (/ead3:ead/ead3:control[1]/ead3:recordid[1]/starts-with(normalize-space(), 'ycba')) then 'CtY-BA' else 'CtY'"/>
+    <xsl:param name="repository" select="/ead3:ead/ead3:control[1]/ead3:recordid[1]/substring-before(., '.')"/>
+    <xsl:variable name="default-agency-code-map" as="map(*)"
+        select='map {
+        "beinecke" : "CtY-B",
+        "divinity" : "CtY-D",
+        "music" : "CtY-Mus",
+        "med" : "CtY-M",
+        "arts" : "CtY-A",
+        "ycba" : "CtY-BA",
+        "walpole" : "CtY-LWL",
+        "peabody" : "CtY-P"
+        }'/>
+    
+    <xsl:param name="default-agency-code" select="if (map:contains($default-agency-code-map, $repository)) then $default-agency-code-map($repository) else 'CtY'"/>
     
     <xsl:param name="ead2002_xmlns" select="'urn:isbn:1-931666-22-9'"/>
     
@@ -61,7 +75,7 @@
     <xsl:template match="ead3:dao/@localtype" priority="2">
         <xsl:attribute name="role" namespace="http://www.w3.org/1999/xlink" select="."/>
     </xsl:template>
-
+    
     <!-- strip values not valid in EAD2002 for now. 
         although we could do something, conceivably, with 'inherit', it shouldn't show up in our corpus -->
     <xsl:template match="@numeration[. = ('armenian', 'decimal', 'decimal-leading-zero', 'georgian', 'inherit', 'lower-greek', 'lower-latin' , 'upper-latin')]" priority="2"/>
@@ -121,18 +135,21 @@
                 </xsl:element>
                 <xsl:element name="descrules" namespace="{$ead2002_xmlns}">
                     <xsl:apply-templates select="ead3:conventiondeclaration[1]/ead3:citation[1]/node()"/>
-             </xsl:element>
+                </xsl:element>
             </xsl:element>    
         </xsl:element>
     </xsl:template>
     
     <xsl:template match="ead3:recordid">
+        <xsl:variable name="mainagencycode" select="../ead3:maintenanceagency[1]/ead3:agencycode[1]"/>
         <xsl:element name="eadid" namespace="{$ead2002_xmlns}">
-            <xsl:attribute name="countrycode" select="if (../ead3:maintenanceagency[1]/normalize-space(@countrycode))
-                then ../ead3:maintenanceagency[1]/normalize-space(@countrycode)
+            <xsl:attribute name="countrycode" select="if ($mainagencycode/normalize-space(@countrycode))
+                then $mainagencycode/normalize-space(@countrycode)
                 else $default-country-code"/>
-            <xsl:attribute name="mainagencycode" select="$default-country-code || '-' || (if (../ead3:maintenanceagency[1]/ead3:agencycode[1])
-                then  ../ead3:maintenanceagency[1]/ead3:agencycode[1]/normalize-space(.)
+            <xsl:attribute name="mainagencycode" select="if ($mainagencycode/starts-with(., $default-country-code))
+                then $mainagencycode/normalize-space(.)
+                else $default-country-code || '-' || (if ($mainagencycode)
+                then  $mainagencycode/normalize-space(.)
                 else $default-agency-code)"/>
             <!-- ignoring publicid attribute for now. not needed for harvesters -->
             <xsl:apply-templates select="@*|node()"/>
@@ -194,7 +211,7 @@
             <xsl:with-param name="datetype" select="$datetype"/>
         </xsl:apply-templates>
     </xsl:template>
-
+    
     <xsl:template match="ead3:daterange">
         <xsl:param name="datetype"/>
         <xsl:element name="unitdate" namespace="{$ead2002_xmlns}">
@@ -204,7 +221,7 @@
             <xsl:value-of select="ead3:fromdate || '-' || ead3:todate"/>
         </xsl:element>
     </xsl:template>
-
+    
     <xsl:template match="ead3:datesingle">
         <xsl:param name="datetype"/>
         <xsl:element name="unitdate" namespace="{$ead2002_xmlns}">
@@ -249,5 +266,5 @@
             <xsl:apply-templates select="@*|node()"/>
         </xsl:element>
     </xsl:template>
-   
+    
 </xsl:stylesheet>
