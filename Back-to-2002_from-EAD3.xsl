@@ -27,6 +27,7 @@
         "music" : "CtY-Mus",
         "med" : "CtY-M",
         "arts" : "CtY-A",
+        "vrc": "CtY-A",
         "ycba" : "CtY-BA",
         "walpole" : "CtY-LWL",
         "peabody" : "CtY-P"
@@ -47,7 +48,7 @@
         </xsl:element>
     </xsl:template>
     
-    <xsl:template match="@*|comment()">
+    <xsl:template match="@* | comment()">
         <xsl:copy select="."/>
     </xsl:template>
     
@@ -58,7 +59,7 @@
     <xsl:template match="@listtype[. = 'unordered']" priority="2"/>
     <xsl:template match="@langcode[. = 'zxx']" priority="2"/>
     
-    <xsl:template match="@localtype |@unitdatetype|@listtype|@dsctype">
+    <xsl:template match="@localtype | @unitdatetype | @listtype | @dsctype">
         <xsl:attribute name="type" select="."/>
     </xsl:template>
     
@@ -100,18 +101,18 @@
         <xsl:attribute name="othertype" select="."/>
     </xsl:template>
     
-    <xsl:template match="ead3:addressline/@localtype | ead3:physdesc/@localtype">
+    <xsl:template match="ead3:addressline/@localtype  | ead3:physdesc/@localtype">
         <xsl:attribute name="altrender" select="."/>
     </xsl:template>
     
     <!-- start: re-introducing the XLink namespace section -->
-    <xsl:template match="@actuate|@arcrole|@href|@show">
+    <xsl:template match="@actuate | @arcrole | @href | @show">
         <!-- also need to change onrequest and onload to onRequest and onLoad -->
         <xsl:attribute name="xlink:{name()}" select="if (starts-with(., 'on'))
             then concat(substring(., 1, 2), upper-case(substring(., 3, 1)), substring(., 4)) else ."/>
     </xsl:template>
     
-    <xsl:template match="@linkrole|@linktitle">
+    <xsl:template match="@linkrole | @linktitle">
         <xsl:attribute name="xlink:{substring-after(name(), 'link')}" select="."/>
     </xsl:template>
     <!-- end: re-introducing the XLink namespace section -->
@@ -175,15 +176,21 @@
         <xsl:apply-templates/>
     </xsl:template>
     
-    <xsl:template match="ead3:localcontrol|ead3:maintenancestatus|ead3:maintenanceagency|ead3:languagedeclaration|ead3:conventiondeclaration|ead3:localdeclaration|ead3:maintenancehistory"/>
+    <xsl:template match="ead3:localcontrol | ead3:maintenancestatus | ead3:maintenanceagency | ead3:languagedeclaration | ead3:conventiondeclaration | ead3:localdeclaration | ead3:maintenancehistory"/>
     
     <xsl:template match="ead3:objectbinwrap">
         <xsl:comment select="'objectbinwrap element removed during transformation from EAD3 to EAD2002.'"/>
     </xsl:template>
     
-    <xsl:template match="ead3:objectxmlwrap|ead3:rightsdeclaration">
+    <xsl:template match="ead3:objectxmlwrap">
         <xsl:comment>
             <xsl:copy-of select="normalize-space(.)"/>
+        </xsl:comment>
+    </xsl:template>
+    
+    <xsl:template match="ead3:rightsdeclaration">
+        <xsl:comment>
+            <xsl:copy-of select="normalize-space(ead3:descriptivenote)"/>
         </xsl:comment>
     </xsl:template>
     
@@ -193,14 +200,14 @@
             <xsl:attribute name="label">
                 <xsl:choose>
                     <xsl:when test="@label">
-                        <xsl:value-of select="@label || ' (' || @containerid || ')'"/>
+                        <xsl:value-of select="@label  || ' (' || @containerid || ')'"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:value-of select="@containerid"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:attribute>
-            <xsl:apply-templates select="@* except @label|node()"/>
+            <xsl:apply-templates select="@* except @label | node()"/>
         </xsl:element>
     </xsl:template>
     
@@ -236,7 +243,7 @@
     
     <xsl:template match="ead3:chronitem/ead3:datesingle" priority="2">
         <xsl:element name="date" namespace="{$ead2002_xmlns}">
-            <xsl:apply-templates select="@*|node()"/>
+            <xsl:apply-templates select="@* | node()"/>
         </xsl:element>
     </xsl:template>
     <!-- end dates-->
@@ -257,13 +264,13 @@
     </xsl:template>
     <xsl:template match="ead3:chronitemset">
         <xsl:element name="eventgrp" namespace="{$ead2002_xmlns}">
-            <xsl:apply-templates select="@*|node()"/>
+            <xsl:apply-templates select="@* | node()"/>
         </xsl:element>
     </xsl:template>
     
     <xsl:template match="ead3:controlnote">
         <xsl:element name="note" namespace="{$ead2002_xmlns}">
-            <xsl:apply-templates select="@*|node()"/>
+            <xsl:apply-templates select="@* | node()"/>
         </xsl:element>
     </xsl:template>
     
