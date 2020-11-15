@@ -6,15 +6,36 @@
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:ead3="http://ead3.archivists.org/schema/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mdc="http://mdc"
     exclude-result-prefixes="xs math"
     version="3.0">
     
+    <xsl:function name="mdc:update-date" as="xs:string">
+        <xsl:param name="date" as="xs:string"/>
+        <xsl:variable name="date-numbers" select="for $num in tokenize($date, '-') return number($num)"/>
+        <xsl:variable name="new-normalized-date">
+            <xsl:value-of select="format-number($date-numbers[1], '0000') || '-' || format-number($date-numbers[2], '00') || '-' || format-number($date-numbers[3], '00')"/>
+        </xsl:variable>
+        <!-- oh wow, this is lazy -->
+        <xsl:value-of select="replace($new-normalized-date, '-NaN', '')"/>
+    </xsl:function>
+    
+    <xsl:strip-space elements="*"/>
+    <!-- need to come up with a full list of elements here -->
+    <xsl:preserve-space elements="ead3:p"/>
+
     <!-- to do:    
         review XLink reqs.... see if others, like xlink:from and xlink:to, are needed
         everything else (of course)..... but  this is all we need for our ASpace-produced corpus, so stopping here for now.
         -->
     
+    <!-- add a param to remove things like c/@altrender, container/@altrender, etc. -->
+    
+    <!-- add param for EAD3 to EAD2002 for other purposes, such as Excel, where we need to change container/@altrender -->
+    
     <xsl:output indent="yes" encoding="UTF-8" method="xml"/>
+    
+    <xsl:param name="create-output-directories" as="xs:boolean" select="false()"/>
     
     <!-- local adjustments to compensate for ASpace repo records that weren't fully filled out...  but could be used as defaults in other scenarios-->
     <xsl:param name="default-country-code" select="'US'"/>
@@ -22,20 +43,34 @@
     <xsl:param name="repository" select="/ead3:ead/ead3:control[1]/ead3:recordid[1]/substring-before(., '.')"/>
     <xsl:variable name="default-agency-code-map" as="map(*)"
         select='map {
-        "beinecke" : "CtY-B",
+        "beinecke" : "CtY-BR",
         "divinity" : "CtY-D",
         "music" : "CtY-Mus",
+        "oham" : "CtY-Mus",
         "med" : "CtY-M",
         "arts" : "CtY-A",
         "vrc": "CtY-A",
         "ycba" : "CtY-BA",
-        "walpole" : "CtY-LWL",
-        "peabody" : "CtY-P"
+        "lwl" : "CtY-LW",
+        "ypm" : "CtY-P"
         }'/>
     
     <xsl:param name="default-agency-code" select="if (map:contains($default-agency-code-map, $repository)) then $default-agency-code-map($repository) else 'CtY'"/>
     
     <xsl:param name="ead2002_xmlns" select="'urn:isbn:1-931666-22-9'"/>
+    
+    <xsl:template match="/">
+        <xsl:choose>
+            <xsl:when test="$create-output-directories">
+                <xsl:result-document href="{'../ead2002/' || lower-case($default-agency-code) || '/' || ead3:ead/ead3:control/ead3:recordid/normalize-space() || '.xml'}">
+                    <xsl:apply-templates/>
+                </xsl:result-document>  
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
     
     <xsl:template match="*">
         <xsl:element name="{name()}" namespace="{$ead2002_xmlns}">
@@ -76,7 +111,7 @@
     <xsl:template match="ead3:dao/@localtype" priority="2">
         <xsl:attribute name="role" namespace="http://www.w3.org/1999/xlink" select="."/>
     </xsl:template>
-    
+
     <!-- strip values not valid in EAD2002 for now. 
         although we could do something, conceivably, with 'inherit', it shouldn't show up in our corpus -->
     <xsl:template match="@numeration[. = ('armenian', 'decimal', 'decimal-leading-zero', 'georgian', 'inherit', 'lower-greek', 'lower-latin' , 'upper-latin')]" priority="2"/>
@@ -136,7 +171,7 @@
                 </xsl:element>
                 <xsl:element name="descrules" namespace="{$ead2002_xmlns}">
                     <xsl:apply-templates select="ead3:conventiondeclaration[1]/ead3:citation[1]/node()"/>
-                </xsl:element>
+             </xsl:element>
             </xsl:element>    
         </xsl:element>
     </xsl:template>
@@ -157,6 +192,9 @@
         </xsl:element>
     </xsl:template>
     
+    <!-- just remove.  could add to a note, since we only store on type of ID here, but not necessary -->
+    <xsl:template match="ead3:otherrecordid"/>
+    
     <xsl:template match="ead3:addressline/ead3:ref">
         <xsl:element name="extptr" namespace="{$ead2002_xmlns}">
             <xsl:apply-templates select="@*"/>
@@ -174,6 +212,10 @@
     <!-- other element-focused templates -->
     <xsl:template match="ead3:part">
         <xsl:apply-templates/>
+        <!-- this should work for most sepearators, but we might need to do something different for name/title entires -->
+        <xsl:if test="following-sibling::ead3:part">
+            <xsl:text> -- </xsl:text>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="ead3:localcontrol | ead3:maintenancestatus | ead3:maintenanceagency | ead3:languagedeclaration | ead3:conventiondeclaration | ead3:localdeclaration | ead3:maintenancehistory"/>
@@ -211,33 +253,44 @@
         </xsl:element>
     </xsl:template>
     
-    <!-- structured dates... probably don't need to handle dateset elements in any special way. -->
+    <!-- structured dates... -->
     <xsl:template match="ead3:unitdatestructured">
         <xsl:variable name="datetype" select="@unitdatetype"/>
+        <xsl:variable name="date-expression" select="@altrender"/>
         <xsl:apply-templates>
-            <xsl:with-param name="datetype" select="$datetype"/>
+            <xsl:with-param name="datetype" select="$datetype" tunnel="true"/>
+            <xsl:with-param name="date-expression" select="$date-expression"/>
         </xsl:apply-templates>
     </xsl:template>
     
+    <xsl:template match="ead3:dateset">
+        <xsl:comment select="'ead3:dateset was used below, but removimg that for the EAD2002 output'"></xsl:comment>
+        <xsl:apply-templates/>
+        <xsl:comment select="'ead3:dateset was used above, but removimg that for the EAD2002 output'"></xsl:comment>
+    </xsl:template>
+
     <xsl:template match="ead3:daterange">
-        <xsl:param name="datetype"/>
+        <xsl:param name="datetype" tunnel="true"/>
+        <xsl:param name="date-expression"/>
         <xsl:element name="unitdate" namespace="{$ead2002_xmlns}">
             <xsl:attribute name="type" select="$datetype"/>
-            <xsl:attribute name="normal" select="if (*[2]) then *[1]/@standarddate || '/' || *[2]/@standarddate
-                else *[1]/@standarddate"/>
-            <xsl:value-of select="ead3:fromdate || '-' || ead3:todate"/>
+            <xsl:attribute name="normal" select="if (*[2]) then *[1]/mdc:update-date(@standarddate) || '/' || *[2]/mdc:update-date(@standarddate)
+                else *[1]/mdc:update-date(@standarddate)"/>
+            <xsl:value-of select="if ($date-expression) then $date-expression else ead3:fromdate || '-' || ead3:todate"/>
         </xsl:element>
     </xsl:template>
-    
+
     <xsl:template match="ead3:datesingle">
-        <xsl:param name="datetype"/>
+        <xsl:param name="datetype" tunnel="true"/>
+        <xsl:param name="date-expression"/>
         <xsl:element name="unitdate" namespace="{$ead2002_xmlns}">
             <!-- datesingle can also occur in lists-->
-            <xsl:if test="ancestor::ead3:unitdatestructured">
-                <xsl:attribute name="type" select="$datetype"/>
-                <xsl:attribute name="normal" select="@standarddate"/> 
+            <xsl:attribute name="type" select="$datetype"/>
+            <!-- should just make this a template -->
+            <xsl:if test="@standarddate">
+                <xsl:attribute name="normal" select="mdc:update-date(@standarddate)"/> 
             </xsl:if>
-            <xsl:apply-templates/>
+            <xsl:value-of select="if ($date-expression) then $date-expression else ."/>
         </xsl:element>
     </xsl:template>
     
@@ -248,12 +301,24 @@
     </xsl:template>
     <!-- end dates-->
     
-    <!-- structured extents -->
+    <!-- structured extents / soon-to-be less structured -->
     <xsl:template match="ead3:physdescstructured">
         <xsl:element name="physdesc" namespace="{$ead2002_xmlns}">
             <xsl:element name="extent" namespace="{$ead2002_xmlns}">
+                <!-- changing this for ArcLight, which doesn't look like it bothers with unit attributes
                 <xsl:attribute name="unit" select="ead3:unittype"/>
+                 -->
                 <xsl:apply-templates select="ead3:quantity/node()"/> 
+                <xsl:text> </xsl:text>
+                <xsl:choose>
+                    <!-- any others to lookout for? -->
+                    <xsl:when test="ead3:unittype eq 'duration_HH:MM:SS.mmm'">
+                        <xsl:text>duration (HH:MM:SS.mmm)</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="ead3:unittype/node()"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:element>
         </xsl:element>
     </xsl:template>
@@ -271,6 +336,48 @@
     <xsl:template match="ead3:controlnote">
         <xsl:element name="note" namespace="{$ead2002_xmlns}">
             <xsl:apply-templates select="@* | node()"/>
+        </xsl:element>
+    </xsl:template>
+    
+    <!-- new for ASpace 2.7.1 -->
+    <xsl:template match="ead3:langmaterial[ead3:descriptivenote]">
+        <xsl:element name="{local-name()}" namespace="{$ead2002_xmlns}">
+            <xsl:apply-templates select="ead3:descriptivenote/ead3:p/node()"/>
+        </xsl:element>
+    </xsl:template>
+
+    <xsl:template match="ead3:langmaterial[not(ead3:descriptivenote)]">
+        <xsl:element name="{local-name()}" namespace="{$ead2002_xmlns}">
+            <xsl:apply-templates select="descendant::ead3:language"/>
+        </xsl:element>
+    </xsl:template>
+    
+    <xsl:template match="ead3:language">
+        <xsl:element name="{local-name()}" namespace="{$ead2002_xmlns}">
+            <xsl:apply-templates select="@langcode"/>
+            <xsl:apply-templates select="following-sibling::ead3:script[1]/@scriptcode"/>
+            <xsl:apply-templates/>
+        </xsl:element>
+    </xsl:template>
+    
+    <!-- new for daoset exports.  we don't need to keep those daosets, since we just need the non-thumbnail links -->
+    <xsl:template match="ead3:daoset">
+        <!-- skipping descriptivenote here, since we'll pick it up later -->
+        <xsl:apply-templates select="ead3:dao"/>
+    </xsl:template>
+    <xsl:template match="ead3:dao[not(@show = 'embed')]">
+        <xsl:element name="{local-name()}" namespace="{$ead2002_xmlns}">
+            <xsl:apply-templates select="@*"/>
+            <xsl:apply-templates select="../ead3:descriptivenote" mode="dao-note"/>
+        </xsl:element>
+    </xsl:template>
+    <xsl:template match="ead3:dao[@show = 'embed']"/>
+    <xsl:template match="ead3:dao/@identifier" priority="2">
+        <xsl:attribute name="altrender" select="." />
+    </xsl:template>
+    <xsl:template match="ead3:descriptivenote" mode="dao-note">
+        <xsl:element name="daodesc" namespace="{$ead2002_xmlns}">
+            <xsl:apply-templates mode="#default"/>
         </xsl:element>
     </xsl:template>
     
