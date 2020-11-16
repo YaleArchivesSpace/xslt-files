@@ -252,7 +252,7 @@
                 select="number(substring-before(normalize-space(.), ' '))"/>
             <xsl:variable name="extent-type"
                 select="lower-case(substring-after(normalize-space(.), ' '))"/>
-            <xsl:value-of select="format-number($extent-number, '#,###.##')"/>
+            <xsl:value-of select="format-number($extent-number, '#,##0.##')"/>
             <xsl:text> </xsl:text>
             <xsl:choose>
                 <!--changes feet to foot for singular extents-->
