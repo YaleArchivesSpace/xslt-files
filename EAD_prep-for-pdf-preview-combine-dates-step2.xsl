@@ -32,7 +32,7 @@
     <xsl:template match="ead:container[@type = following-sibling::ead:container/@type]">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
-            <xsl:apply-templates/>
+            <xsl:apply-templates/><xsl:text>; </xsl:text>
             <xsl:element name="lb" namespace="urn:isbn:1-931666-22-9"/>
         </xsl:copy>
     </xsl:template>
