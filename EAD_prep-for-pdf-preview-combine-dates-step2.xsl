@@ -25,5 +25,15 @@
             </xsl:for-each-group>
         </xsl:copy>
     </xsl:template>
-
+    
+    <!-- temporary patch for old YFAD PDF preview process, to ensure that box 1 and box 2 will show up as something like 1; 2 rather than 12, in the preview step.
+        later, update the oXygen project file to use our EAD3 PDF previews rather than the YFAD one.
+        -->
+    <xsl:template match="ead:container[@type = following-sibling::ead:container/@type]">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:value-of select="concat(., '; ')"/>
+        </xsl:copy>
+    </xsl:template>
+    
 </xsl:stylesheet>
