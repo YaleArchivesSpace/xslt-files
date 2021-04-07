@@ -4,7 +4,7 @@
     xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ead="urn:isbn:1-931666-22-9"
     exclude-result-prefixes="xs mdc xlink ead" version="2.0">
 
-    <xsl:include href="http://www.library.yale.edu/facc/xsl/include/yale.ead2002.id_head_values.xsl"/>
+    <xsl:include href="EAD2002_id_head_values.xsl"/>
 
     <xsl:output method="xml" encoding="UTF-8"/>
 
@@ -77,7 +77,7 @@
     </xsl:template>
 
     <xsl:template
-        match="ead:archdesc/ead:did[starts-with(ead:unitid, 'temp')][ead:physdesc/ead:extent eq '99 Linear feet']">
+        match="ead:archdesc/ead:did[starts-with(ead:unitid, 'temp')][ead:physdesc/ead:extent eq '0 linear_feet']">
         <xsl:copy>
             <ead:head>Overview</ead:head>
             <xsl:copy-of select="ead:unitid"/>
