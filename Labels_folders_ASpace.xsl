@@ -105,7 +105,7 @@ also support EAD3
         <xsl:variable name="folder-title-plus-unitid">
             <xsl:choose>
                 <!-- if there's just a unitid, use that in place of the title and don't inherit anything.
-                            the "inherited" title will still appear as an ancestor title on the label due to the ancestor-sequence element -->
+                            the "inherited" title will still appear as an ancestor title on the label due to the ancestors element -->
                 <xsl:when
                     test="not(../ead:unittitle[normalize-space()]) and ../ead:unitid[not(@audience = 'internal')][normalize-space()]">
                     <xsl:value-of select="../ead:unitid[not(@audience = 'internal')][1]"/>
@@ -200,7 +200,7 @@ also support EAD3
                 </xsl:element>
             </xsl:if>
             
-            <xsl:element name="ancestor-sequence">
+            <xsl:element name="ancestors">
                 <xsl:sequence select="$ancestor-sequence-filtered"/>
             </xsl:element>
             <xsl:element name="constructed-title">
@@ -316,9 +316,9 @@ also support EAD3
         <xsl:text>&#x9;</xsl:text>
         
         <xsl:variable name="series-of-series" select="
-            if (contains(ancestor-sequence, 'xx*****yz')) then 
-            tokenize(ancestor-sequence, 'xx\*\*\*\*\*yz')
-            else ancestor-sequence"/>
+            if (contains(ancestors, 'xx*****yz')) then 
+            tokenize(ancestors, 'xx\*\*\*\*\*yz')
+            else ancestors"/>
 
         <xsl:sequence select="$series-of-series[1]"/>
         <xsl:text>&#x9;</xsl:text>
