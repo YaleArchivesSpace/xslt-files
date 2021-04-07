@@ -49,6 +49,7 @@
     
     <xsl:template match="ead:eadheader[not(ead:eadid/text())]">
         <ead:eadheader audience="internal" countryencoding="iso3166-1" dateencoding="iso8601" findaidstatus="edited-full-draft" langencoding="iso639-2b" repositoryencoding="iso15511" scriptencoding="iso15924">
+            <ead:eadid>...</ead:eadid>
             <ead:filedesc>
                 <ead:titlestmt>
                     <ead:titleproper type="formal">Guide to the ...</ead:titleproper>
@@ -95,6 +96,9 @@
             <ead:descgrp id="prov" type="provenance">
                 <ead:head>Provenance</ead:head>
                 <ead:acqinfo id="acq">
+                    <ead:head>
+                        <xsl:value-of select="$acqinfo_head"/>
+                    </ead:head>
                     <ead:p>....</ead:p>
                 </ead:acqinfo>
             </ead:descgrp>
