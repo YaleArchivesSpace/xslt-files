@@ -105,7 +105,7 @@ also support EAD3
         <xsl:variable name="folder-title-plus-unitid">
             <xsl:choose>
                 <!-- if there's just a unitid, use that in place of the title and don't inherit anything.
-                            the "inherited" title will still appear as an ancestor title on the label due to the ancestors element -->
+                            the "inherited" title will still appear as an ancestor title on the label due to the ancestor-sequence element -->
                 <xsl:when
                     test="not(../ead:unittitle[normalize-space()]) and ../ead:unitid[not(@audience = 'internal')][normalize-space()]">
                     <xsl:value-of select="../ead:unitid[not(@audience = 'internal')][1]"/>
@@ -184,11 +184,11 @@ also support EAD3
                 mode="copy"/>
             
             <!-- and here's how we slyly tackle the issue of multiple folder labels even when we've opted not to number those folders...  for whatever strange reason-->
-            <xsl:if test="$print-boxes-as-folder-labels eq true() and ../ead:physdesc/ead:extent[contains(lower-case(.), 'folders')]">
+            <xsl:if test="$print-boxes-as-folder-labels eq true() and (../ead:physdesc/ead:extent[contains(lower-case(.), 'folders')] or ../ead:physdesc[matches(., '^\d{1,3} folders\.?$', 'i')])">
                 <!-- what if, gasp, there are multiple folder extent statements at a single level?  e.g.  10 folders...  as well as 5 folders?
                     in that case, we'll just grab the first statement and assume it's correct.  we should also add something here to report if there are 
                     multiple folder extent statements and terminate the whole deal -->
-                <xsl:variable name="folderTotal" select="../ead:physdesc/ead:extent[contains(lower-case(.), 'folders')][1]/replace(., '\D', '')"/>
+                <xsl:variable name="folderTotal" select="(../ead:physdesc/ead:extent[contains(lower-case(.), 'folders')][1]/replace(., '\D', ''), ../ead:physdesc[matches(., '^\d{1,3} folders\.?$', 'i')]/replace(.,'\D',''))[1]"/>
                 <xsl:element name="container" namespace="urn:isbn:1-931666-22-9">
                     <xsl:attribute name="type" select="'folder'"/>
                     <!-- here we're just changing the extent size to a folder range so that the downstream conversion process 
@@ -200,7 +200,7 @@ also support EAD3
                 </xsl:element>
             </xsl:if>
             
-            <xsl:element name="ancestors">
+            <xsl:element name="ancestor-sequence">
                 <xsl:sequence select="$ancestor-sequence-filtered"/>
             </xsl:element>
             <xsl:element name="constructed-title">
@@ -316,9 +316,9 @@ also support EAD3
         <xsl:text>&#x9;</xsl:text>
         
         <xsl:variable name="series-of-series" select="
-            if (contains(ancestors, 'xx*****yz')) then 
-            tokenize(ancestors, 'xx\*\*\*\*\*yz')
-            else ancestors"/>
+            if (contains(ancestor-sequence, 'xx*****yz')) then 
+            tokenize(ancestor-sequence, 'xx\*\*\*\*\*yz')
+            else ancestor-sequence"/>
 
         <xsl:sequence select="$series-of-series[1]"/>
         <xsl:text>&#x9;</xsl:text>
